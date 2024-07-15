@@ -10,6 +10,7 @@ use crate::{
 };
 
 pub mod extent;
+pub mod fields;
 pub mod fps;
 pub mod home;
 pub mod layers;

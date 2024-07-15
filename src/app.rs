@@ -10,7 +10,8 @@ use tokio::sync::mpsc; // 0.17.1
 use crate::{
     action::Action,
     components::{
-        extent::Extent, fps::FpsCounter, home::Home, layers::LayerList, srs::Srs, Component,
+        extent::Extent, fields::Fields, fps::FpsCounter, home::Home, layers::LayerList, srs::Srs,
+        Component,
     },
     config::Config,
     data,
@@ -36,6 +37,7 @@ impl App {
         let layers = LayerList::new(dataset);
         let srs = Srs::from_layerinfo(&layers.layerinfos[0]);
         let extent = Extent::from_layerinfo(&layers.layerinfos[0]);
+        let fields = Fields::from_layerinfo(&layers.layerinfos[0]);
         let config = Config::new()?;
         let mode = Mode::Home;
         Ok(Self {
@@ -46,6 +48,7 @@ impl App {
                 Box::new(layers),
                 Box::new(srs),
                 Box::new(extent),
+                Box::new(fields),
             ],
             should_quit: false,
             should_suspend: false,

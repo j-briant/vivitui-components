@@ -9,12 +9,14 @@ use geo::{coord, Point};
 //use geo::{BoundingRect, GeometryCollection};
 //use geodesy::prelude::*;
 //use geozero::ToGeo;
+use fields::Fields;
 use serde::{Deserialize, Serialize};
 use srs::Srs;
 use std::{borrow::BorrowMut, path::PathBuf};
 use strum::Display;
 
 pub mod extent;
+pub mod fields;
 pub mod srs;
 
 lazy_static::lazy_static! {
@@ -56,6 +58,7 @@ pub struct LayerInfo {
     pub name: String,
     pub extent: Extent,
     pub srs: Srs,
+    pub fields: Fields,
     pub feature_number: u64,
     #[serde(skip)]
     pub geometries: Vec<geo::Geometry>,
@@ -75,6 +78,7 @@ impl From<&mut Layer<'_>> for LayerInfo {
         Self {
             name: layer.name(),
             extent: Extent::from(&*layer),
+            fields: Fields::from(&*layer),
             srs: Srs::from(&*layer),
             feature_number: layer.feature_count(),
             geometries,
