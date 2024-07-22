@@ -26,6 +26,7 @@ pub struct App {
     pub should_quit: bool,
     pub should_suspend: bool,
     pub mode: Mode,
+    pub focusable_mode: Vec<Mode>,
     pub last_tick_key_events: Vec<KeyEvent>,
 }
 
@@ -39,7 +40,8 @@ impl App {
         let extent = Extent::from_layerinfo(&layers.layerinfos[0]);
         let fields = Fields::from_layerinfo(&layers.layerinfos[0]);
         let config = Config::new()?;
-        let mode = Mode::Home;
+        let mode = Mode::LayerList;
+        let focusable_mode = vec![Mode::LayerList, Mode::Srs, Mode::Extent, Mode::Fields];
         Ok(Self {
             //dataset,
             components: vec![
@@ -54,8 +56,23 @@ impl App {
             should_suspend: false,
             config,
             mode,
+            focusable_mode,
             last_tick_key_events: Vec::new(),
         })
+    }
+
+    fn set_mode(&mut self) {
+        let index = self
+            .focusable_mode
+            .iter()
+            .position(|&m| m == self.mode)
+            .unwrap();
+
+        if index < self.focusable_mode.len() - 1 {
+            self.mode = self.focusable_mode[index + 1]
+        } else {
+            self.mode = self.focusable_mode[0]
+        }
     }
 
     pub async fn run(&mut self) -> Result<()> {
@@ -124,6 +141,7 @@ impl App {
                     Action::Quit => self.should_quit = true,
                     Action::Suspend => self.should_suspend = true,
                     Action::Resume => self.should_suspend = false,
+                    Action::SwitchFocusableMode => self.set_mode(),
                     Action::Resize(w, h) => {
                         tui.resize(Rect::new(0, 0, w, h))?;
                         tui.draw(|f| {

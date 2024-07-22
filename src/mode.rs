@@ -4,4 +4,8 @@ use serde::{Deserialize, Serialize};
 pub enum Mode {
     #[default]
     Home,
+    LayerList,
+    Srs,
+    Extent,
+    Fields,
 }

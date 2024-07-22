@@ -9,11 +9,27 @@
       "down": "DownLayer",
       "<k>": "UpLayer",
       "up": "UpLayer",
-      "tab": "EnterSrs",
+      "tab": "SwitchFocusableMode",
       "<u>": "ScrollUp",
       "<d>": "ScrollDown",
       "left": "ScrollLeft",
       "right": "ScrollRight",
     },
+    "LayerList": {
+      "<q>": "Quit", // Quit the application
+      "tab": "SwitchFocusableMode", 
+      "down": "DownLayer",
+      "up": "UpLayer",
+    },
+    "Srs": {
+      "<q>": "Quit", // Quit the application
+      "tab": "SwitchFocusableMode", 
+      "down": "ScrollDown",
+      "up": "ScrollUp",
+      "left": "ScrollLeft",
+      "right": "ScrollRight",
+    },
+    "Extent": {"<q>": "Quit", "tab": "SwitchFocusableMode"},
+    "Fields": {"<q>": "Quit", "tab": "SwitchFocusableMode"}
   },
 }

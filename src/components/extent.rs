@@ -37,9 +37,9 @@ impl Component for Extent {
             self.xmax = li.extent.xmax;
             self.ymin = li.extent.ymin;
             self.ymax = li.extent.ymax;
-        } else if let Action::EnterExtent = action {
+        } /* else if let Action::EnterExtent = action {
             self.focus = true;
-        };
+        } */;
         Ok(None)
     }
 

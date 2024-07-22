@@ -66,8 +66,8 @@ impl Component for Srs {
             self.name = li.srs.name;
             self.proj4 = li.srs.proj4;
             self.wkt = li.srs.wkt;
-        } else if let Action::EnterSrs = action {
-            self.focus = true;
+            /*} else if let Action::EnterSrs = action {
+            self.focus = true */
         } else if let Action::ScrollDown = action {
             self.state.scroll_down();
         } else if let Action::ScrollUp = action {
