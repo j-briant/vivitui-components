@@ -1,6 +1,8 @@
 use color_eyre::eyre::Result;
 use crossterm::event::{KeyEvent, MouseEvent};
+use focusable::{Focus, FocusContainer};
 use ratatui::layout::Rect;
+use ratatui::{prelude::*, widgets::*};
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
@@ -125,4 +127,18 @@ pub trait Component {
     ///
     /// * `Result<()>` - An Ok result or an error.
     fn draw(&mut self, f: &mut Frame<'_>, area: Rect) -> Result<()>;
+}
+
+pub trait FocusableWidget: Component + Focus {
+    fn boxed(self) -> Box<dyn FocusableWidget>
+    where
+        Self: 'static + Sized,
+    {
+        Box::new(self)
+    }
+}
+
+#[derive(Focus, FocusContainer)]
+pub(crate) struct FocusableComponents {
+    pub(crate) children: Vec<Box<dyn FocusableWidget>>,
 }

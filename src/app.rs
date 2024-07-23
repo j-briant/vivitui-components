@@ -1,7 +1,8 @@
+use focusable::{Focus, FocusContainer};
 use std::path::PathBuf;
 
 use color_eyre::eyre::Result;
-use crossterm::event::KeyEvent;
+use crossterm::event::{KeyCode, KeyEvent};
 use gdal::Dataset;
 use ratatui::prelude::Rect;
 use serde::{Deserialize, Serialize};
@@ -11,7 +12,7 @@ use crate::{
     action::Action,
     components::{
         extent::Extent, fields::Fields, fps::FpsCounter, home::Home, layers::LayerList, srs::Srs,
-        Component,
+        Component, FocusableComponents, FocusableWidget,
     },
     config::Config,
     data,
@@ -22,11 +23,11 @@ use crate::{
 pub struct App {
     pub config: Config,
     //pub dataset: Dataset,
-    pub components: Vec<Box<dyn Component>>,
+    pub components: FocusableComponents, //Vec<Box<dyn FocusableWidget>>,
     pub should_quit: bool,
     pub should_suspend: bool,
     pub mode: Mode,
-    pub focusable_mode: Vec<Mode>,
+    //pub focusable_components: FocusableComponents,
     pub last_tick_key_events: Vec<KeyEvent>,
 }
 
@@ -41,27 +42,36 @@ impl App {
         let fields = Fields::from_layerinfo(&layers.layerinfos[0]);
         let config = Config::new()?;
         let mode = Mode::LayerList;
-        let focusable_mode = vec![Mode::LayerList, Mode::Srs, Mode::Extent, Mode::Fields];
+        /*         let focusable_components = FocusableComponents {
+            children: vec![
+                layers.clone().boxed(),
+                srs.clone().boxed(),
+                extent.clone().boxed(),
+                fields.clone().boxed(),
+            ],
+        }; */
         Ok(Self {
             //dataset,
-            components: vec![
-                //Box::new(home),
-                //Box::new(fps),
-                Box::new(layers),
-                Box::new(srs),
-                Box::new(extent),
-                Box::new(fields),
-            ],
+            components: FocusableComponents {
+                children: vec![
+                    //Box::new(home),
+                    //Box::new(fps),
+                    Box::new(layers),
+                    Box::new(srs),
+                    Box::new(extent),
+                    Box::new(fields),
+                ],
+            },
             should_quit: false,
             should_suspend: false,
             config,
             mode,
-            focusable_mode,
+            //focusable_components,
             last_tick_key_events: Vec::new(),
         })
     }
 
-    fn set_mode(&mut self) {
+    /* fn set_mode(&mut self) {
         let index = self
             .focusable_mode
             .iter()
@@ -73,7 +83,7 @@ impl App {
         } else {
             self.mode = self.focusable_mode[0]
         }
-    }
+    } */
 
     pub async fn run(&mut self) -> Result<()> {
         let (action_tx, mut action_rx) = mpsc::unbounded_channel();
@@ -84,15 +94,15 @@ impl App {
         // tui.mouse(true);
         tui.enter()?;
 
-        for component in self.components.iter_mut() {
+        for component in self.components.children.iter_mut() {
             component.register_action_handler(action_tx.clone())?;
         }
 
-        for component in self.components.iter_mut() {
+        for component in self.components.children.iter_mut() {
             component.register_config_handler(self.config.clone())?;
         }
 
-        for component in self.components.iter_mut() {
+        for component in self.components.children.iter_mut() {
             component.init(tui.size()?)?;
         }
 
@@ -104,7 +114,10 @@ impl App {
                     tui::Event::Render => action_tx.send(Action::Render)?,
                     tui::Event::Resize(x, y) => action_tx.send(Action::Resize(x, y))?,
                     tui::Event::Key(key) => {
-                        if let Some(keymap) = self.config.keybindings.get(&self.mode) {
+                        // If key is tab we always switch mode
+                        if key.code == KeyCode::Tab {
+                            action_tx.send(Action::SwitchFocusableMode)?;
+                        } else if let Some(keymap) = self.config.keybindings.get(&self.mode) {
                             if let Some(action) = keymap.get(&vec![key]) {
                                 log::info!("Got action: {action:?}");
                                 action_tx.send(action.clone())?;
@@ -123,7 +136,7 @@ impl App {
                     }
                     _ => {}
                 }
-                for component in self.components.iter_mut() {
+                for component in self.components.children.iter_mut() {
                     if let Some(action) = component.handle_events(Some(e.clone()))? {
                         action_tx.send(action)?;
                     }
@@ -141,11 +154,11 @@ impl App {
                     Action::Quit => self.should_quit = true,
                     Action::Suspend => self.should_suspend = true,
                     Action::Resume => self.should_suspend = false,
-                    Action::SwitchFocusableMode => self.set_mode(),
+                    Action::SwitchFocusableMode => self.components.focus_next(),
                     Action::Resize(w, h) => {
                         tui.resize(Rect::new(0, 0, w, h))?;
                         tui.draw(|f| {
-                            for component in self.components.iter_mut() {
+                            for component in self.components.children.iter_mut() {
                                 let r = component.draw(f, f.size());
                                 if let Err(e) = r {
                                     action_tx
@@ -157,7 +170,7 @@ impl App {
                     }
                     Action::Render => {
                         tui.draw(|f| {
-                            for component in self.components.iter_mut() {
+                            for component in self.components.children.iter_mut() {
                                 let r = component.draw(f, f.size());
                                 if let Err(e) = r {
                                     action_tx
@@ -169,7 +182,7 @@ impl App {
                     }
                     _ => {}
                 }
-                for component in self.components.iter_mut() {
+                for component in self.components.children.iter_mut() {
                     if let Some(action) = component.update(action.clone())? {
                         action_tx.send(action)?
                     };

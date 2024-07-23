@@ -18,6 +18,7 @@ crossterm = { version = "0.27.0", features = ["serde", "event-stream"] }
 derivative = "2.2.0"
 derive_deref = "1.1.1"
 directories = "5.0.1"
+focusable = "0.2.4"
 futures = "0.3.28"
 gdal = "0.16.0"
 gdal-sys = { version = "0.9.1", features = ["bindgen"] }

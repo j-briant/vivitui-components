@@ -1,3 +1,4 @@
+use focusable::Focus;
 use std::default;
 
 use color_eyre::eyre::Result;
@@ -6,15 +7,15 @@ use layout::Size;
 use ratatui::{prelude::*, widgets::*};
 use tui_scrollview::{self, ScrollView, ScrollViewState};
 
-use super::Component;
+use super::{Component, FocusableWidget};
 use crate::{action::Action, data::LayerInfo, tui::Frame};
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Focus)]
 pub struct Srs {
     pub name: String,
     pub wkt: String,
     pub proj4: String,
-    pub focus: bool,
+    pub is_focused: bool,
     pub state: ScrollViewState,
 }
 
@@ -39,7 +40,7 @@ impl Srs {
             name: li.srs.name.clone(),
             wkt: li.srs.wkt.clone(),
             proj4: li.srs.proj4.clone(),
-            focus: false,
+            is_focused: false,
             state: Default::default(),
         }
     }
@@ -60,14 +61,14 @@ impl Srs {
     }
 }
 
+impl FocusableWidget for Srs {}
+
 impl Component for Srs {
     fn update(&mut self, action: Action) -> Result<Option<Action>> {
         if let Action::PassLayerInfo(li) = action {
             self.name = li.srs.name;
             self.proj4 = li.srs.proj4;
             self.wkt = li.srs.wkt;
-            /*} else if let Action::EnterSrs = action {
-            self.focus = true */
         } else if let Action::ScrollDown = action {
             self.state.scroll_down();
         } else if let Action::ScrollUp = action {
@@ -101,7 +102,7 @@ impl Component for Srs {
             .title(block::Title::from("Srs").alignment(Alignment::Right))
             .borders(Borders::ALL);
 
-        if self.focus {
+        if self.is_focused {
             block = block.border_set(symbols::border::DOUBLE);
         }
 

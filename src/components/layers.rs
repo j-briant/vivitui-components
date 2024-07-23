@@ -7,12 +7,13 @@ use gdal::{
 };
 use ratatui::{prelude::*, widgets::*};
 
-use super::Component;
+use super::{Component, Focus, FocusableWidget};
 use crate::{action::Action, data::LayerInfo, tui::Frame};
 
-#[derive(Debug)]
+#[derive(Debug, Focus, Clone)]
 pub struct LayerList {
     pub layerinfos: Vec<LayerInfo>,
+    is_focused: bool,
     state: ListState,
 }
 
@@ -20,7 +21,11 @@ impl LayerList {
     pub fn new(dataset: Dataset) -> Self {
         let layerinfos = LayerInfo::from_dataset(&dataset);
         let state = ListState::default().with_selected(Some(0));
-        Self { layerinfos, state }
+        Self {
+            layerinfos,
+            is_focused: true,
+            state,
+        }
     }
 
     fn names(&self) -> Vec<String> {
@@ -69,6 +74,8 @@ impl LayerList {
     }
 }
 
+impl FocusableWidget for LayerList {}
+
 impl Component for LayerList {
     fn update(&mut self, action: Action) -> Result<Option<Action>> {
         if let Action::UpLayer = action {
@@ -96,9 +103,13 @@ impl Component for LayerList {
 
         let rect = rects[0];
 
-        let block = Block::default()
+        let mut block = Block::default()
             .title(block::Title::from("Layer list").alignment(Alignment::Left))
             .borders(Borders::ALL);
+
+        if self.is_focused {
+            block = block.border_set(symbols::border::DOUBLE);
+        }
 
         let l = List::new(self.names())
             .block(block)

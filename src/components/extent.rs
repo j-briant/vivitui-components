@@ -1,21 +1,22 @@
 use std::default;
 
 use color_eyre::eyre::Result;
+use focusable::Focus;
 use gdal::vector::{Layer, LayerAccess};
 use layout::Size;
 use ratatui::{prelude::*, widgets::*};
 use tui_scrollview::{self, ScrollView, ScrollViewState};
 
-use super::Component;
+use super::{Component, FocusableWidget};
 use crate::{action::Action, data::LayerInfo, tui::Frame};
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Focus)]
 pub struct Extent {
     pub xmin: f64,
     pub xmax: f64,
     pub ymin: f64,
     pub ymax: f64,
-    pub focus: bool,
+    pub is_focused: bool,
 }
 
 impl Extent {
@@ -25,10 +26,12 @@ impl Extent {
             xmax: li.extent.xmax,
             ymin: li.extent.ymin,
             ymax: li.extent.ymax,
-            focus: false,
+            is_focused: false,
         }
     }
 }
+
+impl FocusableWidget for Extent {}
 
 impl Component for Extent {
     fn update(&mut self, action: Action) -> Result<Option<Action>> {
@@ -60,7 +63,7 @@ impl Component for Extent {
             .title(block::Title::from("Extent").alignment(Alignment::Right))
             .borders(Borders::ALL);
 
-        if self.focus {
+        if self.is_focused {
             block = block.border_set(symbols::border::DOUBLE);
         }
 

@@ -1,18 +1,20 @@
 use std::default;
 
 use color_eyre::eyre::Result;
+use focusable::Focus;
 use gdal::vector::{Layer, LayerAccess};
 use layout::Size;
 use ratatui::{prelude::*, widgets::*};
 use tui_scrollview::{self, ScrollView, ScrollViewState};
 
-use super::Component;
+use super::{Component, FocusableWidget};
 use crate::{action::Action, data::LayerInfo, tui::Frame};
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Focus)]
 pub struct Fields {
     pub geom_field: Vec<String>,
     pub fields: Vec<(String, u32)>,
+    pub is_focused: bool,
 }
 
 impl Fields {
@@ -20,9 +22,12 @@ impl Fields {
         Self {
             geom_field: li.fields.geom_field.clone(),
             fields: li.fields.fields.clone(),
+            is_focused: false,
         }
     }
 }
+
+impl FocusableWidget for Fields {}
 
 impl Component for Fields {
     fn update(&mut self, action: Action) -> Result<Option<Action>> {
@@ -66,6 +71,10 @@ impl Component for Fields {
         let mut block = Block::default()
             .title(block::Title::from("Fields").alignment(Alignment::Right))
             .borders(Borders::ALL);
+
+        if self.is_focused {
+            block = block.border_set(symbols::border::DOUBLE);
+        }
 
         let rows = self.fields.iter().enumerate().map(|(i, data)| {
             let color = match i % 2 {
