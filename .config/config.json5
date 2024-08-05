@@ -5,12 +5,10 @@
       "<Ctrl-d>": "Quit", // Another way to quit
       "<Ctrl-c>": "Quit", // Yet another way to quit
       "<Ctrl-z>": "Suspend", // Suspend the application
-      "tab": "SwitchFocusableMode", 
       "<j>": "DownLayer",
       "down": "DownLayer",
       "<k>": "UpLayer",
       "up": "UpLayer",
-      "tab": "SwitchFocusableMode",
       "<u>": "ScrollUp",
       "<d>": "ScrollDown",
       "left": "ScrollLeft",
@@ -18,19 +16,15 @@
     },
     "LayerList": {
       "<q>": "Quit", // Quit the application
-      "tab": "SwitchFocusableMode", 
       "down": "DownLayer",
       "up": "UpLayer",
     },
     "Srs": {
       "<q>": "Quit", // Quit the application
-      "tab": "SwitchFocusableMode", 
       "down": "ScrollDown",
       "up": "ScrollUp",
       "left": "ScrollLeft",
       "right": "ScrollRight",
     },
-    "Extent": {"<q>": "Quit", "tab": "SwitchFocusableMode"},
-    "Fields": {"<q>": "Quit", "tab": "SwitchFocusableMode"}
   },
 }

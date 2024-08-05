@@ -116,7 +116,9 @@ impl App {
                     tui::Event::Key(key) => {
                         // If key is tab we always switch mode
                         if key.code == KeyCode::Tab {
-                            action_tx.send(Action::SwitchFocusableMode)?;
+                            action_tx.send(Action::NextFocusableMode)?;
+                        } else if key.code == KeyCode::BackTab {
+                            action_tx.send(Action::PreviousFocusableMode)?;
                         } else if let Some(keymap) = self.config.keybindings.get(&self.mode) {
                             if let Some(action) = keymap.get(&vec![key]) {
                                 log::info!("Got action: {action:?}");
@@ -154,7 +156,20 @@ impl App {
                     Action::Quit => self.should_quit = true,
                     Action::Suspend => self.should_suspend = true,
                     Action::Resume => self.should_suspend = false,
-                    Action::SwitchFocusableMode => self.components.focus_next(),
+                    Action::NextFocusableMode => {
+                        if self.components.children.last().unwrap().is_focused() {
+                            self.components.focus_first();
+                        } else {
+                            self.components.focus_next();
+                        }
+                    }
+                    Action::PreviousFocusableMode => {
+                        if self.components.children.first().unwrap().is_focused() {
+                            self.components.focus_last();
+                        } else {
+                            self.components.focus_previous();
+                        }
+                    }
                     Action::Resize(w, h) => {
                         tui.resize(Rect::new(0, 0, w, h))?;
                         tui.draw(|f| {
