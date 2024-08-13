@@ -16,6 +16,7 @@ pub mod fields;
 pub mod fps;
 pub mod home;
 pub mod layers;
+pub mod position_map;
 pub mod srs;
 
 /// `Component` is a trait that represents a visual and interactive element of the user interface.
@@ -139,6 +140,6 @@ pub trait FocusableWidget: Component + Focus {
 }
 
 #[derive(Focus, FocusContainer)]
-pub(crate) struct FocusableComponents {
-    pub(crate) children: Vec<Box<dyn FocusableWidget>>,
+pub struct FocusableComponents {
+    pub children: Vec<Box<dyn FocusableWidget>>,
 }

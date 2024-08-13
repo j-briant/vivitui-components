@@ -11,8 +11,8 @@ use tokio::sync::mpsc; // 0.17.1
 use crate::{
     action::Action,
     components::{
-        extent::Extent, fields::Fields, fps::FpsCounter, home::Home, layers::LayerList, srs::Srs,
-        Component, FocusableComponents, FocusableWidget,
+        extent::Extent, fields::Fields, fps::FpsCounter, home::Home, layers::LayerList,
+        position_map::PositionMap, srs::Srs, Component, FocusableComponents, FocusableWidget,
     },
     config::Config,
     data,
@@ -40,6 +40,7 @@ impl App {
         let srs = Srs::from_layerinfo(&layers.layerinfos[0]);
         let extent = Extent::from_layerinfo(&layers.layerinfos[0]);
         let fields = Fields::from_layerinfo(&layers.layerinfos[0]);
+        let position_map = PositionMap::from_layerinfo(&layers.layerinfos[0]);
         let config = Config::new()?;
         let mode = Mode::LayerList;
         /*         let focusable_components = FocusableComponents {
@@ -60,6 +61,7 @@ impl App {
                     Box::new(srs),
                     Box::new(extent),
                     Box::new(fields),
+                    Box::new(position_map),
                 ],
             },
             should_quit: false,
@@ -156,20 +158,8 @@ impl App {
                     Action::Quit => self.should_quit = true,
                     Action::Suspend => self.should_suspend = true,
                     Action::Resume => self.should_suspend = false,
-                    Action::NextFocusableMode => {
-                        if self.components.children.last().unwrap().is_focused() {
-                            self.components.focus_first();
-                        } else {
-                            self.components.focus_next();
-                        }
-                    }
-                    Action::PreviousFocusableMode => {
-                        if self.components.children.first().unwrap().is_focused() {
-                            self.components.focus_last();
-                        } else {
-                            self.components.focus_previous();
-                        }
-                    }
+                    Action::NextFocusableMode => self.components.focus_next(),
+                    Action::PreviousFocusableMode => self.components.focus_previous(),
                     Action::Resize(w, h) => {
                         tui.resize(Rect::new(0, 0, w, h))?;
                         tui.draw(|f| {
